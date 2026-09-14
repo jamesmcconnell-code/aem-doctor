@@ -16,11 +16,13 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 - Runtime-aware missing-package and version-range diagnostics.
 - Runtime inventory metadata in human-readable and JSON reports.
 - JSON report schema version 1.1.
+- Internal developer-preview guidance and structured feedback forms.
 
 ### Changed
 
 - Restricted diagnostics to imports from project bundles while retaining runtime bundles as provider evidence.
 - Improved missing-provider wording to describe the available evidence accurately.
+- Protected the proof-of-concept package from accidental npm publication.
 
 ## [0.0.1] - 2026-09-14
 

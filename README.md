@@ -6,6 +6,63 @@ It discovers Maven modules and their built JARs, parses OSGi package metadata, c
 
 No AI or LLM APIs are used.
 
+AEM Doctor is an independent project and is not affiliated with, endorsed by, or sponsored by Adobe.
+
+## Internal developer preview
+
+Version 0.0.2 is an experimental proof of concept intended for authorized internal evaluation. Do not use its findings as the sole basis for production changes, and do not redistribute the project or its release artifacts.
+
+During diagnosis, AEM Doctor:
+
+- reads Maven POMs and compiled JAR manifests from the paths you supply;
+- does not modify the analyzed project or its JARs;
+- does not connect to an AEM server;
+- does not upload project data or make network requests;
+- reports only what can be established from the local evidence supplied.
+
+Installing npm dependencies and cloning or downloading the project may still require network access.
+
+### Pilot quick start
+
+You must have access to the private repository, Node.js 22 or newer, npm, and Maven available locally.
+
+```bash
+git clone https://github.com/jamesmcconnell-code/aem-doctor.git
+cd aem-doctor
+npm ci
+npm run build
+```
+
+Alternatively, download `aem-doctor-0.0.2.tgz` from the private [v0.0.2 prerelease](https://github.com/jamesmcconnell-code/aem-doctor/releases/tag/v0.0.2) and install it globally:
+
+```bash
+npm install --global ./aem-doctor-0.0.2.tgz
+aem-doctor --version
+```
+
+Build the AEM project before diagnosing it:
+
+```bash
+cd /path/to/aem-project
+mvn clean package
+node /path/to/aem-doctor/dist/cli/index.js diagnose .
+```
+
+If you installed the prerelease tarball globally, run `aem-doctor diagnose .` instead of the `node` command above.
+
+For a more complete analysis, supply a directory containing the relevant runtime OSGi bundle JARs:
+
+```bash
+node /path/to/aem-doctor/dist/cli/index.js diagnose . \
+  --runtime-bundles /path/to/runtime/bundles
+```
+
+Do not attach proprietary POMs, JARs, source code, runtime bundles, or unredacted diagnostic output to GitHub issues. Report the smallest sanitized example that reproduces a problem.
+
+### Providing feedback
+
+Use the repository's [POC feedback form](https://github.com/jamesmcconnell-code/aem-doctor/issues/new?template=poc-feedback.yml) to describe usefulness and missing capabilities. Use the [bug report form](https://github.com/jamesmcconnell-code/aem-doctor/issues/new?template=bug-report.yml) for incorrect behavior or crashes.
+
 ## Version 0.0.2 scope
 
 The current release:
@@ -30,10 +87,10 @@ The current release:
 - npm
 - A Maven project that has already been compiled or packaged
 
-Install dependencies and build the CLI:
+Install dependencies exactly as locked and build the CLI:
 
 ```bash
-npm install
+npm ci
 npm run build
 ```
 

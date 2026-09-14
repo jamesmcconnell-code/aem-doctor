@@ -1,0 +1,63 @@
+name: Bug report
+description: Report incorrect behavior or a crash using sanitized details.
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not include proprietary source code, POMs, JARs, runtime bundles, credentials, customer data, or unredacted diagnostic output.
+
+  - type: input
+    id: version
+    attributes:
+      label: AEM Doctor version
+      placeholder: 0.0.2
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Local environment
+      description: Include only non-sensitive details such as operating system and Node.js version.
+      placeholder: Windows 11, Node.js 22
+    validations:
+      required: true
+
+  - type: textarea
+    id: command
+    attributes:
+      label: Command used
+      description: Replace confidential paths and names with placeholders.
+      placeholder: aem-doctor diagnose /path/to/project
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include only sanitized excerpts needed to explain the problem.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Describe a sanitized reproduction or attach synthetic fixtures only.
+
+  - type: checkboxes
+    id: sanitized
+    attributes:
+      label: Data handling confirmation
+      options:
+        - label: I have removed confidential and proprietary project information from this report.
+          required: true

@@ -1,0 +1,81 @@
+name: POC feedback
+description: Share sanitized feedback from an internal AEM Doctor evaluation.
+title: "[POC feedback]: "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for evaluating AEM Doctor. Do not include proprietary source code, POMs, JARs, runtime bundles, credentials, customer data, or unredacted diagnostic output.
+
+  - type: dropdown
+    id: setup
+    attributes:
+      label: Did setup succeed?
+      options:
+        - Yes, without assistance
+        - Yes, with assistance
+        - No
+    validations:
+      required: true
+
+  - type: dropdown
+    id: result
+    attributes:
+      label: Did AEM Doctor identify a useful issue?
+      options:
+        - Yes
+        - Partially
+        - No
+        - The scan did not complete
+    validations:
+      required: true
+
+  - type: textarea
+    id: value
+    attributes:
+      label: What was useful or confusing?
+      description: Describe the experience without including confidential project details.
+    validations:
+      required: true
+
+  - type: textarea
+    id: missing
+    attributes:
+      label: What should AEM Doctor diagnose next?
+      description: Name the problem or workflow that would provide the most value.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ongoing_value
+    attributes:
+      label: Would ongoing access be valuable to your work or team?
+      options:
+        - Yes
+        - Maybe
+        - No
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: AEM Doctor version
+      placeholder: 0.0.2
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Local environment
+      description: Include only non-sensitive details such as operating system and Node.js version.
+      placeholder: macOS, Node.js 22
+
+  - type: checkboxes
+    id: sanitized
+    attributes:
+      label: Data handling confirmation
+      options:
+        - label: I have removed confidential and proprietary project information from this report.
+          required: true

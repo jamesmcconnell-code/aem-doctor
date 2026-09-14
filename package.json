@@ -1,6 +1,7 @@
 {
   "name": "aem-doctor",
   "version": "0.0.2",
+  "private": true,
   "description": "Deterministic diagnostics for Adobe Experience Manager projects",
   "type": "module",
   "main": "./dist/index.js",
