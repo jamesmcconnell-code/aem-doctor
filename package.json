@@ -28,6 +28,21 @@
   "engines": {
     "node": ">=22"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jamesmcconnell-code/aem-doctor.git"
+  },
+  "homepage": "https://github.com/jamesmcconnell-code/aem-doctor#readme",
+  "bugs": {
+    "url": "https://github.com/jamesmcconnell-code/aem-doctor/issues"
+  },
+  "keywords": [
+    "aem",
+    "adobe-experience-manager",
+    "osgi",
+    "diagnostics",
+    "cli"
+  ],
   "license": "UNLICENSED",
   "dependencies": {
     "commander": "^14.0.0",
