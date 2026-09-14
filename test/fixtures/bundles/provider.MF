@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.example.provider
+Bundle-Version: 5.12.3
+Export-Package: com.example.compatible;version="5.12.3",
+ com.example.incompatible;version="5.11.2",
+ com.example.broad;version="5.12.3",
+ com.example.unversioned,
+ com.adobe.cq.forms.core.components.models.form;version="5.12.3"
+

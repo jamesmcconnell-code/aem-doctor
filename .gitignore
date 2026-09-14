@@ -1,0 +1,8 @@
+node_modules/
+!test/fixtures/maven-project/node_modules/
+!test/fixtures/maven-project/node_modules/ignored/
+!test/fixtures/maven-project/node_modules/ignored/pom.xml
+dist/
+coverage/
+*.log
+.DS_Store

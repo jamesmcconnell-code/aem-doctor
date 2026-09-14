@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.example.aem</groupId>
+    <artifactId>fixture-parent</artifactId>
+    <version>1.2.3</version>
+  </parent>
+  <artifactId>fixture-ui.apps</artifactId>
+  <packaging>content-package</packaging>
+</project>

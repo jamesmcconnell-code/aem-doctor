@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.example.missing-consumer
+Import-Package: com.example.missing;version="[1.0,2.0)",
+ com.example.optional-missing;version="[1.0,2.0)";resolution:=optional
+

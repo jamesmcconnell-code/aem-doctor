@@ -1,0 +1,843 @@
+You are acting as a senior software architect and principal engineer helping me build a new developer tool called **AEM Doctor**.
+
+## Product vision
+
+AEM Doctor is intended to become a developer diagnostics platform for Adobe Experience Manager.
+
+Its long-term purpose is to diagnose:
+
+* Maven dependency problems
+* OSGi Import-Package / Export-Package problems
+* AEM version compatibility problems
+* Java version compatibility
+* AEM Forms dependency issues
+* Core Components compatibility
+* Cloud Manager preflight problems
+* Dispatcher problems
+* Content package problems
+* migration risks
+* common AEM architectural issues
+
+However, **do not attempt to build the full platform yet**.
+
+We are building a deliberately small technical proof of concept:
+
+# AEM Doctor 0.0.1
+
+The goal of version 0.0.1 is to prove that we can analyze a real AEM Maven project and diagnose OSGi dependency problems automatically.
+
+The application must run locally and must not require an AEM server.
+
+---
+
+# Core MVP objective
+
+Given an AEM project directory, AEM Doctor should:
+
+1. Recursively discover Maven `pom.xml` files.
+2. Parse Maven project/module information.
+3. Discover compiled `.jar` files under module `target` directories.
+4. Open those JAR files and read `META-INF/MANIFEST.MF`.
+5. Extract relevant OSGi metadata.
+6. Build an in-memory package dependency graph.
+7. Compare `Import-Package` requirements against available `Export-Package` declarations.
+8. Detect unresolved packages.
+9. Detect incompatible OSGi package version ranges.
+10. Produce a human-readable terminal report explaining the problem.
+
+Do not introduce AI or LLM APIs in this version.
+
+The diagnostic engine must be deterministic.
+
+---
+
+# Preferred technology
+
+Implement the application using:
+
+* TypeScript
+* Node.js
+* npm
+* a CLI-based architecture
+
+The CLI should ultimately support:
+
+```bash
+npx aem-doctor diagnose .
+```
+
+For local development, something like this is acceptable:
+
+```bash
+npm run dev -- diagnose .
+```
+
+Use modern TypeScript and keep the project compatible with a current Node LTS release.
+
+Do not introduce unnecessary frameworks.
+
+Prefer small, well-maintained libraries.
+
+---
+
+# Architecture
+
+Use a modular architecture similar to:
+
+```text
+src/
+  cli/
+  scanner/
+  maven/
+  osgi/
+  graph/
+  rules/
+  reporter/
+  models/
+  utils/
+```
+
+The precise structure can change if you have a better architectural reason.
+
+The important requirement is separation between:
+
+1. filesystem scanning
+2. Maven parsing
+3. OSGi manifest parsing
+4. dependency graph construction
+5. diagnostic rules
+6. reporting
+
+The CLI should orchestrate these systems but contain very little business logic itself.
+
+---
+
+# Required data models
+
+Create clear TypeScript models/interfaces for concepts such as:
+
+```text
+MavenProject
+MavenModule
+BundleManifest
+ImportedPackage
+ExportedPackage
+Version
+VersionRange
+DependencyGraph
+DiagnosticFinding
+```
+
+You may adjust these names if appropriate.
+
+A diagnostic finding should contain at minimum:
+
+```text
+ruleId
+severity
+title
+description
+packageName
+consumerBundle
+providerBundle
+requiredVersionRange
+availableVersion
+recommendation
+```
+
+Fields may be optional where appropriate.
+
+Severity should support at least:
+
+```text
+INFO
+WARNING
+ERROR
+CRITICAL
+```
+
+---
+
+# Maven project discovery
+
+Recursively search the supplied project directory for `pom.xml`.
+
+Ignore directories such as:
+
+```text
+node_modules
+.git
+.idea
+.vscode
+```
+
+Parse at least:
+
+```text
+groupId
+artifactId
+version
+packaging
+parent
+modules
+dependencies
+dependencyManagement
+properties
+```
+
+Property interpolation should support common Maven patterns such as:
+
+```xml
+${project.version}
+${some.custom.version}
+```
+
+A full Maven implementation is not required for version 0.0.1.
+
+Handle enough Maven metadata to make diagnostics useful.
+
+---
+
+# JAR discovery
+
+For each Maven module, inspect likely compiled artifacts under:
+
+```text
+target/*.jar
+```
+
+Ignore:
+
+```text
+*-sources.jar
+*-javadoc.jar
+original-*.jar
+```
+
+Do not modify the JAR.
+
+Read:
+
+```text
+META-INF/MANIFEST.MF
+```
+
+---
+
+# OSGi manifest parsing
+
+Extract at minimum:
+
+```text
+Bundle-SymbolicName
+Bundle-Version
+Import-Package
+Export-Package
+Require-Capability
+Provide-Capability
+```
+
+The most important fields for this MVP are:
+
+```text
+Import-Package
+Export-Package
+```
+
+Correctly handle multi-line MANIFEST.MF continuation syntax.
+
+Correctly parse comma-separated package declarations where attributes may contain commas or quoted values.
+
+For example:
+
+```text
+Import-Package:
+ com.example.foo;version="[1.0,2.0)",
+ com.example.bar;version="[5.12,5.13)"
+```
+
+should become structured objects.
+
+---
+
+# OSGi version handling
+
+Implement proper semantic comparison for OSGi-style versions.
+
+Support forms such as:
+
+```text
+1
+1.2
+1.2.3
+1.2.3.qualifier
+5.12.3
+```
+
+Support ranges such as:
+
+```text
+[1.0,2.0)
+[5.12,5.13)
+(1.0,2.0]
+[1.0,)
+(,2.0)
+```
+
+Remember:
+
+```text
+[ = inclusive
+( = exclusive
+
+] = inclusive
+) = exclusive
+```
+
+Do not rely on ordinary JavaScript string comparison.
+
+Create unit tests for version and version-range behavior.
+
+---
+
+# Dependency graph
+
+Construct a graph representing something similar to:
+
+```text
+Bundle
+  imports
+    Package X [version range]
+
+Package X
+  exported by
+    Bundle Y version Z
+```
+
+Given an imported package:
+
+```text
+com.adobe.cq.forms.core.components.models.form
+```
+
+AEM Doctor should be able to answer:
+
+```text
+Who imports this?
+Who exports this?
+Which version is exported?
+What version range is required?
+Does the exported version satisfy the import range?
+```
+
+Design this graph so it can later support multiple providers for the same package.
+
+---
+
+# Diagnostic rules for 0.0.1
+
+Implement these initial deterministic rules.
+
+## AD-OSGI-001
+
+### Missing exported package
+
+Example:
+
+```text
+Import:
+com.example.foo
+
+No bundle in the analyzed project exports the package.
+```
+
+Output an ERROR or CRITICAL finding.
+
+Important:
+
+Because version 0.0.1 only sees project bundles, clearly explain that the package could potentially be supplied by the AEM runtime or another external bundle.
+
+Do not claim definitively that the dependency is missing from AEM.
+
+Phrase the result accurately.
+
+Example:
+
+```text
+No provider for com.example.foo was found among the analyzed project bundles.
+
+This package may be supplied by the AEM runtime or another external dependency.
+```
+
+---
+
+## AD-OSGI-002
+
+### OSGi version mismatch
+
+Example:
+
+```text
+Consumer requires:
+[5.12,5.13)
+
+Provider exports:
+5.11.2
+```
+
+Report:
+
+```text
+Required:
+>= 5.12.0 and < 5.13.0
+
+Available:
+5.11.2
+
+Result:
+INCOMPATIBLE
+```
+
+---
+
+## AD-OSGI-003
+
+### Compatible package
+
+For debugging purposes, allow an optional verbose mode that reports successful resolutions.
+
+Example:
+
+```text
+com.adobe.foo
+
+Required:
+[1.0,10.0)
+
+Available:
+5.12.3
+
+Result:
+COMPATIBLE
+```
+
+Do not clutter normal output with every successful package resolution.
+
+---
+
+## AD-OSGI-004
+
+### Suspicious broad version range
+
+Detect unusually broad ranges such as:
+
+```text
+[1.0.0,10.0.0)
+```
+
+This should be a WARNING, not an error.
+
+Explain that the dependency technically resolves but the range spans many major versions and could permit runtime resolution against APIs that were not tested with the application.
+
+Make the threshold configurable in code.
+
+---
+
+# CLI
+
+Implement at least:
+
+```bash
+aem-doctor diagnose <path>
+```
+
+Support:
+
+```bash
+aem-doctor diagnose .
+```
+
+Optional useful flags:
+
+```text
+--verbose
+--json
+--debug
+```
+
+`--json` should emit structured findings so the application can later integrate with CI/CD systems.
+
+Example normal output:
+
+```text
+AEM Doctor 0.0.1
+
+Scanning:
+./my-aem-project
+
+Maven modules discovered: 7
+Bundles discovered: 3
+Imported packages: 163
+Exported packages: 84
+
+Dependency Analysis
+────────────────────────────────
+
+Critical: 1
+Warnings: 4
+
+AD-OSGI-002
+Version mismatch
+
+Package:
+com.example.foo
+
+Consumer:
+my-project.core
+
+Required:
+[5.12,5.13)
+
+Provider:
+example-provider
+
+Available:
+5.11.2
+
+Diagnosis:
+The available package version does not satisfy the OSGi import range.
+
+Recommendation:
+Align the provider version or change the dependency configuration so a compatible package is available.
+
+────────────────────────────────
+```
+
+Terminal formatting should be clean but do not spend excessive effort on styling.
+
+---
+
+# Current real-world test case
+
+One of the real AEM dependency scenarios that motivated this product involves:
+
+```text
+Package:
+com.adobe.cq.forms.core.components.models.form
+
+Exported version:
+5.12.3
+
+Provider:
+com.adobe.aem.core-forms-components-af-core
+```
+
+Consumers can include ranges such as:
+
+```text
+formsgenai-core
+[1.0.0,10.0.0)
+
+com.adobe.aemds.guide.aemds-guide-addon-impl
+[1.0.0,10.0.0)
+
+com.adobe.aem.core-forms-print-components-print-core
+[5.12,5.13)
+```
+
+For this scenario the engine should correctly determine that:
+
+```text
+5.12.3 ∈ [1.0.0,10.0.0)
+
+and
+
+5.12.3 ∈ [5.12,5.13)
+```
+
+Therefore the presence of these package relationships alone does **not** represent a version incompatibility.
+
+The engine should not invent a root cause.
+
+A key principle of AEM Doctor is:
+
+> Report what the evidence proves, distinguish it from what is only suspected, and never manufacture a diagnosis.
+
+---
+
+# Testing requirements
+
+Use an appropriate TypeScript test framework.
+
+Create unit tests covering at least:
+
+## Version comparison
+
+```text
+5.12.3 > 5.11.2
+5.12.3 < 5.13.0
+5.12.3 == 5.12.3
+```
+
+## Version ranges
+
+Verify:
+
+```text
+5.12.3 satisfies [5.12,5.13)
+5.13.0 does not satisfy [5.12,5.13)
+5.11.9 does not satisfy [5.12,5.13)
+5.12.3 satisfies [1.0.0,10.0.0)
+```
+
+## Manifest parsing
+
+Test:
+
+* multi-line MANIFEST entries
+* multiple Import-Package values
+* quoted version ranges
+* Export-Package parsing
+
+## Diagnostic rules
+
+Create fixture bundles/manifests representing:
+
+1. compatible dependency
+2. missing provider
+3. incompatible provider
+4. broad version range
+
+---
+
+# Fixtures
+
+Create a test fixture directory such as:
+
+```text
+test/fixtures/
+```
+
+Include fake AEM-style Maven modules and/or MANIFEST files so that tests do not depend on a real AEM installation.
+
+Do not include proprietary Adobe binaries.
+
+---
+
+# Error handling
+
+The application must handle gracefully:
+
+```text
+invalid project path
+malformed pom.xml
+corrupt JAR
+missing MANIFEST.MF
+malformed OSGi metadata
+unparseable version
+```
+
+One malformed bundle must not crash analysis of the entire repository.
+
+Report analysis warnings where appropriate.
+
+---
+
+# Logging
+
+Normal mode should be concise.
+
+Debug mode may print:
+
+```text
+files discovered
+POMs parsed
+JARs inspected
+manifest headers
+graph edges
+rule execution
+```
+
+Do not print excessive debugging output by default.
+
+---
+
+# Non-goals for version 0.0.1
+
+Do NOT build:
+
+* web frontend
+* user authentication
+* Stripe integration
+* SaaS backend
+* database
+* cloud hosting
+* AI integration
+* Adobe API integrations
+* AEM server authentication
+* Cloud Manager integration
+* GitHub integration
+* automatic code modification
+* migration assessment
+* Dispatcher analysis
+* Sling Model analysis
+* HTL analysis
+* security scanning
+* accessibility scanning
+
+Those can come later.
+
+This version exists solely to validate the diagnostic engine.
+
+---
+
+# Design for future expansion
+
+Although those capabilities should not be implemented now, design the rule engine so future categories can fit naturally:
+
+```text
+OSGI
+MAVEN
+JAVA
+AEM
+FORMS
+CLOUD
+DISPATCHER
+COMPONENT
+SECURITY
+MIGRATION
+```
+
+For example:
+
+```text
+AD-OSGI-001
+AD-MAVEN-001
+AD-AEM-001
+AD-FORMS-001
+```
+
+Rules should ideally implement a common interface.
+
+Conceptually:
+
+```ts
+interface DiagnosticRule {
+  id: string;
+  category: string;
+  analyze(context: AnalysisContext): DiagnosticFinding[];
+}
+```
+
+You may improve this API if appropriate.
+
+---
+
+# Code quality expectations
+
+Treat this as the foundation of a potentially commercial developer product.
+
+Requirements:
+
+* strong TypeScript typing
+* clear separation of concerns
+* readable code
+* minimal duplication
+* useful comments only where needed
+* no giant functions
+* no placeholder architecture
+* no unnecessary abstraction
+* tests for important parsing and version logic
+
+Do not overengineer the MVP.
+
+---
+
+# README
+
+Create a useful README containing:
+
+1. what AEM Doctor is
+2. current 0.0.1 scope
+3. installation
+4. development setup
+5. CLI usage
+6. example output
+7. architecture overview
+8. supported diagnostic rules
+9. limitations
+10. roadmap
+
+Be explicit that version 0.0.1 only analyzes providers visible in the supplied project artifacts and does not yet know all packages supplied by an AEM runtime.
+
+---
+
+# Implementation process
+
+Do not immediately dump hundreds of lines of code without inspecting the repository.
+
+First:
+
+1. inspect the current repository
+2. explain the proposed project structure
+3. identify existing tooling/configuration that should be preserved
+4. create an implementation plan
+5. then implement the MVP incrementally
+
+After each meaningful stage:
+
+* run tests
+* run TypeScript compilation
+* fix errors before continuing
+
+Do not leave the repository knowingly broken.
+
+---
+
+# Definition of done
+
+AEM Doctor 0.0.1 is complete when I can run something equivalent to:
+
+```bash
+npm install
+npm run build
+npm test
+
+npm run dev -- diagnose /path/to/aem/project
+```
+
+and receive a deterministic report that:
+
+1. discovers Maven modules
+2. discovers compiled bundles
+3. parses OSGi manifests
+4. builds Import-Package / Export-Package relationships
+5. correctly evaluates OSGi version ranges
+6. finds missing project-local providers
+7. finds incompatible versions
+8. recognizes compatible versions
+9. warns about suspicious broad ranges
+10. produces both human-readable and JSON output
+
+Most importantly, for the real Forms example:
+
+```text
+Exported:
+5.12.3
+
+Required:
+[5.12,5.13)
+```
+
+the tool must correctly report that this relationship is compatible.
+
+Do not guess beyond the evidence.
+
+When implementation is complete, provide:
+
+* summary of architecture
+* files created or modified
+* commands to run it
+* test results
+* known limitations
+* recommended next technical step for version 0.0.2

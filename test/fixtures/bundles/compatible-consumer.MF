@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.example.compatible-consumer
+Import-Package: com.example.compatible;version="[5.12,5.13)",
+ com.example.unversioned;version="[0,1)"
+

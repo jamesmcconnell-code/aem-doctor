@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: formsgenai-core
+Import-Package: com.adobe.cq.forms.core.components.models.form;version="[1.0.0,10.0.0)"
+

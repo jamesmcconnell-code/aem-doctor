@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.example.broad-consumer
+Import-Package: com.example.broad;version="[1.0.0,10.0.0)"
+

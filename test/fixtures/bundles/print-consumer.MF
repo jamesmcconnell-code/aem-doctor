@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.adobe.aem.core-forms-print-components-print-core
+Import-Package: com.adobe.cq.forms.core.components.models.form;version="[5.12,5.13)"
+

@@ -1,0 +1,14 @@
+Manifest-Version: 1.0
+Bundle-SymbolicName: com.example.consumer;singleton:=true
+Bundle-Version: 1.2.3.release_1
+Import-Package: com.example.foo;version="[1.0,2.0)",
+ com.example.bar;version="[5.12,5.13)";resolution:=optional,
+ com.example.shared;com.example.shared.api;version="3.0"
+Export-Package: com.example.exported;version="5.12.3";uses:="com.a,
+ com.b"
+Require-Capability: osgi.ee;filter:="(&(osgi.ee=JavaSE)(version>=17))"
+Provide-Capability: osgi.service;objectClass:List<String>="com.example.A,
+ com.example.B"
+
+Name: ignored/section
+Ignored-Header: ignored

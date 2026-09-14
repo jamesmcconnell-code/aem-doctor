@@ -1,0 +1,46 @@
+{
+  "name": "aem-doctor",
+  "version": "0.0.2",
+  "description": "Deterministic diagnostics for Adobe Experience Manager projects",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "aem-doctor": "./dist/cli/index.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "node --import tsx src/cli/index.ts",
+    "prepack": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "commander": "^14.0.0",
+    "fast-xml-parser": "^5.11.1",
+    "yauzl": "^3.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "@types/yauzl": "^3.4.0",
+    "@types/yazl": "^3.3.1",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^5.0.0",
+    "yazl": "^3.3.1"
+  }
+}
